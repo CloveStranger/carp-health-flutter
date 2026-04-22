@@ -75,7 +75,7 @@ void main() {
       expect(args['dataUnitKey'], HealthDataUnit.MINUTE.name);
     });
 
-    test('forwards data unit and recording method', () async {
+    test('forwards data unit, recording method, and metadata', () async {
       ctx.channel.when('writeData', true);
 
       final success = await ctx.health.writeHealthData(
@@ -85,6 +85,7 @@ void main() {
         startTime: HealthFixtures.start,
         endTime: HealthFixtures.end,
         recordingMethod: RecordingMethod.manual,
+        metadata: const {'note': 'test'},
       );
 
       expect(success, isTrue);
@@ -93,6 +94,7 @@ void main() {
       final args = Map<String, dynamic>.from(call!.arguments as Map);
       expect(args['dataUnitKey'], HealthDataUnit.BEATS_PER_MINUTE.name);
       expect(args['recordingMethod'], RecordingMethod.manual.toInt());
+      expect(args['metadata'], {'note': 'test'});
     });
   });
 

@@ -523,6 +523,7 @@ class Health {
   ///    only at a specific point in time (default).
   ///  * [recordingMethod] - the recording method of the data point, automatic by default.
   ///    (on iOS this must be manual or automatic)
+  ///  * [metadata] - optional metadata to store with the data point on iOS.
   ///
   /// Values for Sleep and Headache are ignored and will be automatically assigned
   /// the default value.
@@ -535,6 +536,7 @@ class Health {
     double? clientRecordVersion,
     DateTime? endTime,
     RecordingMethod recordingMethod = RecordingMethod.automatic,
+    Map<String, dynamic>? metadata,
   }) async {
     await _checkIfHealthConnectAvailableOnAndroid();
     await _checkIfDataTypeAvailableOnDevice(type);
@@ -594,6 +596,7 @@ class Health {
       'recordingMethod': recordingMethod.toInt(),
       'clientRecordId': clientRecordId,
       'clientRecordVersion': clientRecordVersion,
+      'metadata': metadata,
     };
     bool? success = await _channel.invokeMethod('writeData', args);
     return success ?? false;

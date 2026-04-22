@@ -198,9 +198,8 @@ class HealthDataWriter {
         let dateTo = HealthUtilities.dateFromMilliseconds(endTime.doubleValue)
 
         let isManualEntry = recordingMethod == HealthConstants.RecordingMethod.manual.rawValue
-        let metadata: [String: Any] = [
-            HKMetadataKeyWasUserEntered: NSNumber(value: isManualEntry),
-        ]
+        var metadata = (arguments["metadata"] as? [String: Any]) ?? [:]
+        metadata[HKMetadataKeyWasUserEntered] = NSNumber(value: isManualEntry)
 
         guard let sampleType = dataTypesDict[type] else {
             print("Warning: Health data type '\(type)' not available on this iOS version.")
