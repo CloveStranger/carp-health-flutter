@@ -136,6 +136,7 @@ class HealthDataWriter(
         val startTime = call.argument<Long>("startTime")!!
         val endTime = call.argument<Long>("endTime")!!
         val value = call.argument<Double>("value")!!
+        val unit = call.argument<String>("dataUnitKey")
         val clientRecordId: String? = call.argument("clientRecordId")
         val clientRecordVersion: Double? = call.argument<Double>("clientRecordVersion")
         val recordingMethod = call.argument<Int>("recordingMethod")!!
@@ -153,7 +154,7 @@ class HealthDataWriter(
             deviceType = deviceType,
         )
 
-        val record = createRecord(type, startTime, endTime, value, metadata)
+        val record = createRecord(type, startTime, endTime, value, unit, metadata)
 
         if (record == null) {
             result.success(false)
@@ -592,6 +593,7 @@ class HealthDataWriter(
             startTime: Long,
             endTime: Long,
             value: Double,
+            unit: String?,
             metadata: Metadata
     ): Record? {
         return when (type) {
@@ -720,7 +722,11 @@ class HealthDataWriter(
                     HydrationRecord(
                             startTime = Instant.ofEpochMilli(startTime),
                             endTime = Instant.ofEpochMilli(endTime),
-                            volume = Volume.liters(value),
+                            volume =
+                                    when (unit) {
+                                        "MILLILITER" -> Volume.liters(value / 1000.0)
+                                        else -> Volume.liters(value)
+                                    },
                             startZoneOffset = null,
                             endZoneOffset = null,
                             metadata = metadata,

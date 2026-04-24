@@ -348,7 +348,7 @@ const Map<HealthDataType, HealthDataUnit> dataTypeToUnit = {
   HealthDataType.WALKING_SPEED: HealthDataUnit.METER_PER_SECOND,
   HealthDataType.SPEED: HealthDataUnit.METER_PER_SECOND,
 
-  HealthDataType.WATER: HealthDataUnit.LITER,
+  HealthDataType.WATER: HealthDataUnit.MILLILITER,
   HealthDataType.SLEEP_ASLEEP: HealthDataUnit.MINUTE,
   HealthDataType.SLEEP_AWAKE: HealthDataUnit.MINUTE,
   HealthDataType.SLEEP_AWAKE_IN_BED: HealthDataUnit.MINUTE,

@@ -6,6 +6,7 @@ import HealthKit
 class HealthDataWriter {
     let healthStore: HKHealthStore
     let dataTypesDict: [String: HKSampleType]
+    let dataQuantityTypesDict: [String: HKQuantityType]
     let unitDict: [String: HKUnit]
     let workoutActivityTypeMap: [String: HKWorkoutActivityType]
     private var workoutRouteBuilders: [String: HKWorkoutRouteBuilder] = [:]
@@ -21,14 +22,17 @@ class HealthDataWriter {
     /// - Parameters:
     ///   - healthStore: The HealthKit store
     ///   - dataTypesDict: Dictionary of data types
+    ///   - dataQuantityTypesDict: Dictionary of quantity types
     ///   - unitDict: Dictionary of units
     ///   - workoutActivityTypeMap: Dictionary of workout activity types
     init(
         healthStore: HKHealthStore, dataTypesDict: [String: HKSampleType],
+        dataQuantityTypesDict: [String: HKQuantityType],
         unitDict: [String: HKUnit], workoutActivityTypeMap: [String: HKWorkoutActivityType]
     ) {
         self.healthStore = healthStore
         self.dataTypesDict = dataTypesDict
+        self.dataQuantityTypesDict = dataQuantityTypesDict
         self.unitDict = unitDict
         self.workoutActivityTypeMap = workoutActivityTypeMap
     }
@@ -201,7 +205,7 @@ class HealthDataWriter {
         var metadata = (arguments["metadata"] as? [String: Any]) ?? [:]
         metadata[HKMetadataKeyWasUserEntered] = NSNumber(value: isManualEntry)
 
-        guard let sampleType = dataTypesDict[type] else {
+        guard let sampleType = dataTypesDict[type] ?? dataQuantityTypesDict[type] else {
             print("Warning: Health data type '\(type)' not available on this iOS version.")
             result(false)
             return

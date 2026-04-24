@@ -5,22 +5,26 @@ import HealthKit
 class HealthDataOperations {
     let healthStore: HKHealthStore
     let dataTypesDict: [String: HKSampleType]
+    let dataQuantityTypesDict: [String: HKQuantityType]
     let characteristicsTypesDict: [String: HKCharacteristicType]
     let nutritionList: [String]
 
     /// - Parameters:
     ///   - healthStore: The HealthKit store
     ///   - dataTypesDict: Dictionary of data types
+    ///   - dataQuantityTypesDict: Dictionary of quantity types
     ///   - characteristicsTypesDict: Dictionary of characteristic types
     ///   - nutritionList: List of nutrition data types
     init(
         healthStore: HKHealthStore,
         dataTypesDict: [String: HKSampleType],
+        dataQuantityTypesDict: [String: HKQuantityType],
         characteristicsTypesDict: [String: HKCharacteristicType],
         nutritionList: [String]
     ) {
         self.healthStore = healthStore
         self.dataTypesDict = dataTypesDict
+        self.dataQuantityTypesDict = dataQuantityTypesDict
         self.characteristicsTypesDict = characteristicsTypesDict
         self.nutritionList = nutritionList
     }
@@ -280,7 +284,7 @@ class HealthDataOperations {
             throw PluginError(message: "Invalid Arguments - UUID or DataTypeKey invalid")
         }
 
-        guard let dataTypeToRemove = dataTypesDict[dataTypeKey] else {
+        guard let dataTypeToRemove = dataTypesDict[dataTypeKey] ?? dataQuantityTypesDict[dataTypeKey] else {
             print("Warning: Health data type '\(dataTypeKey)' not found in dataTypesDict")
             result(false)
             return
@@ -310,6 +314,79 @@ class HealthDataOperations {
             healthStore.delete(samples) { success, error in
                 if let error {
                     print("Error deleting sample with UUID \(uuid): \(error.localizedDescription)")
+                }
+                DispatchQueue.main.async {
+                    result(success)
+                }
+            }
+        }
+
+        healthStore.execute(query)
+    }
+
+    /// Delete health data by client record ID stored in sample metadata
+    /// - Parameters:
+    ///   - call: Flutter method call
+    ///   - result: Flutter result callback
+    func deleteByClientRecordId(call: FlutterMethodCall, result: @escaping FlutterResult) throws {
+        guard let arguments = call.arguments as? NSDictionary,
+              let clientRecordId = arguments["clientRecordId"] as? String,
+              !clientRecordId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              let dataTypeKey = arguments["dataTypeKey"] as? String
+        else {
+            throw PluginError(message: "Invalid Arguments - ClientRecordId or DataTypeKey invalid")
+        }
+
+        guard characteristicsTypesDict[dataTypeKey] == nil else {
+            print("Info: Cannot delete characteristic type '\(dataTypeKey)' - these are read-only system values")
+            result(false)
+            return
+        }
+
+        guard let dataTypeToRemove = dataTypesDict[dataTypeKey] ?? dataQuantityTypesDict[dataTypeKey] else {
+            print("Warning: Health data type '\(dataTypeKey)' not found in dataTypesDict")
+            result(false)
+            return
+        }
+
+        let clientRecordIdPredicate = NSPredicate(
+            format: "metadata.%K == %@", "clientRecordId", clientRecordId
+        )
+        let ownerPredicate = HKQuery.predicateForObjects(from: HKSource.default())
+        let predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            clientRecordIdPredicate, ownerPredicate,
+        ])
+
+        let query = HKSampleQuery(
+            sampleType: dataTypeToRemove,
+            predicate: predicate,
+            limit: HKObjectQueryNoLimit,
+            sortDescriptors: nil
+        ) { [weak self] _, samplesOrNil, error in
+            guard let self else { return }
+
+            guard let samples = samplesOrNil, error == nil else {
+                print(
+                    "Error querying samples with clientRecordId \(clientRecordId): \(error?.localizedDescription ?? "Unknown error")"
+                )
+                DispatchQueue.main.async {
+                    result(false)
+                }
+                return
+            }
+
+            guard !samples.isEmpty else {
+                DispatchQueue.main.async {
+                    result(false)
+                }
+                return
+            }
+
+            healthStore.delete(samples) { success, error in
+                if let error {
+                    print(
+                        "Error deleting samples with clientRecordId \(clientRecordId): \(error.localizedDescription)"
+                    )
                 }
                 DispatchQueue.main.async {
                     result(success)

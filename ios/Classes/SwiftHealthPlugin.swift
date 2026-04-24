@@ -32,6 +32,7 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
     private lazy var healthDataWriter: HealthDataWriter = .init(
         healthStore: healthStore,
         dataTypesDict: dataTypesDict,
+        dataQuantityTypesDict: dataQuantityTypesDict,
         unitDict: unitDict,
         workoutActivityTypeMap: workoutActivityTypeMap
     )
@@ -39,6 +40,7 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
     private lazy var healthDataOperations: HealthDataOperations = .init(
         healthStore: healthStore,
         dataTypesDict: dataTypesDict,
+        dataQuantityTypesDict: dataQuantityTypesDict,
         characteristicsTypesDict: characteristicsTypesDict,
         nutritionList: nutritionList
     )
@@ -178,6 +180,15 @@ public class SwiftHealthPlugin: NSObject, FlutterPlugin {
             } catch {
                 result(FlutterError(code: "DELETE_ERROR",
                                     message: "Error deleting data by UUID: \(error.localizedDescription)",
+                                    details: nil))
+            }
+
+        case "deleteByClientRecordId":
+            do {
+                try healthDataOperations.deleteByClientRecordId(call: call, result: result)
+            } catch {
+                result(FlutterError(code: "DELETE_ERROR",
+                                    message: "Error deleting data by client record ID: \(error.localizedDescription)",
                                     details: nil))
             }
 

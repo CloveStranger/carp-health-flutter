@@ -96,6 +96,42 @@ void main() {
       expect(args['recordingMethod'], RecordingMethod.manual.toInt());
       expect(args['metadata'], {'note': 'test'});
     });
+
+    test('uses milliliter as the default water unit', () async {
+      ctx.channel.when('writeData', true);
+
+      final success = await ctx.health.writeHealthData(
+        value: 2000,
+        type: HealthDataType.WATER,
+        startTime: HealthFixtures.start,
+        endTime: HealthFixtures.end,
+      );
+
+      expect(success, isTrue);
+      final call = ctx.channel.lastCallFor('writeData');
+      expect(call, isNotNull);
+      final args = Map<String, dynamic>.from(call!.arguments as Map);
+      expect(args['value'], 2000);
+      expect(args['dataUnitKey'], HealthDataUnit.MILLILITER.name);
+    });
+
+    test('uses kilocalorie as the default total calories burned unit', () async {
+      ctx.channel.when('writeData', true);
+
+      final success = await ctx.health.writeHealthData(
+        value: 560,
+        type: HealthDataType.TOTAL_CALORIES_BURNED,
+        startTime: HealthFixtures.start,
+        endTime: HealthFixtures.end,
+      );
+
+      expect(success, isTrue);
+      final call = ctx.channel.lastCallFor('writeData');
+      expect(call, isNotNull);
+      final args = Map<String, dynamic>.from(call!.arguments as Map);
+      expect(args['value'], 560);
+      expect(args['dataUnitKey'], HealthDataUnit.KILOCALORIE.name);
+    });
   });
 
   group('writeActivityIntensity', () {
