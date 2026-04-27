@@ -869,6 +869,15 @@ class HealthDataWriter {
         let dateFrom = HealthUtilities.dateFromMilliseconds(startTime.doubleValue)
         let dateTo = HealthUtilities.dateFromMilliseconds(endTime.doubleValue)
 
+        var metadata = arguments["metadata"] as? [String: Any] ?? [:]
+        if let clientRecordId = arguments["clientRecordId"] as? String,
+           !clientRecordId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            metadata["clientRecordId"] = clientRecordId
+        }
+        if let clientRecordVersion = arguments["clientRecordVersion"] {
+            metadata["clientRecordVersion"] = clientRecordVersion
+        }
+
         let workout = HKWorkout(
             activityType: activityTypeValue,
             start: dateFrom,
@@ -876,7 +885,7 @@ class HealthDataWriter {
             duration: dateTo.timeIntervalSince(dateFrom),
             totalEnergyBurned: totalEnergyBurned ?? nil,
             totalDistance: totalDistance ?? nil,
-            metadata: nil
+            metadata: metadata.isEmpty ? nil : metadata
         )
 
         healthStore.save(

@@ -1244,10 +1244,7 @@ class Health {
   /// Fetch the next page of changes for a previously created token.
   ///
   /// Android only. Returns null on iOS or if an error occurs.
-  Future<HealthChangesResponse?> getChanges({
-    required String changesToken,
-    bool includeSelf = false,
-  }) async {
+  Future<HealthChangesResponse?> getChanges({required String changesToken, bool includeSelf = false}) async {
     if (Platform.isIOS) return null;
 
     await _checkIfHealthConnectAvailableOnAndroid();
@@ -1522,6 +1519,9 @@ class Health {
     HealthDataUnit totalDistanceUnit = HealthDataUnit.METER,
     String? title,
     RecordingMethod recordingMethod = RecordingMethod.automatic,
+    String? clientRecordId,
+    double? clientRecordVersion,
+    Map<String, dynamic>? metadata,
   }) async {
     await _checkIfHealthConnectAvailableOnAndroid();
     if (Platform.isIOS && [RecordingMethod.active, RecordingMethod.unknown].contains(recordingMethod)) {
@@ -1544,6 +1544,9 @@ class Health {
       'totalDistanceUnit': totalDistanceUnit.name,
       'title': title,
       'recordingMethod': recordingMethod.toInt(),
+      'clientRecordId': clientRecordId,
+      'clientRecordVersion': clientRecordVersion,
+      'metadata': metadata,
     };
     return await _channel.invokeMethod('writeWorkoutData', args) == true;
   }

@@ -233,7 +233,15 @@ class HealthDataWriter(
         val totalDistance = call.argument<Int>("totalDistance")
         val recordingMethod = call.argument<Int>("recordingMethod")!!
         val deviceType: Int? = call.argument<Int>("deviceType")
-        val workoutMetadata = buildMetadata(recordingMethod = recordingMethod, deviceType = deviceType)
+        val clientRecordId: String? = call.argument("clientRecordId")
+        val clientRecordVersion = call.argument<Double>("clientRecordVersion")?.toLong()
+        val workoutMetadata =
+                buildMetadata(
+                        recordingMethod = recordingMethod,
+                        clientRecordId = clientRecordId,
+                        clientRecordVersion = clientRecordVersion,
+                        deviceType = deviceType,
+                )
 
         if (!HealthConstants.workoutTypeMap.containsKey(type)) {
             result.success(false)
